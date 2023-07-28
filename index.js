@@ -11,7 +11,6 @@ const app = express();
 const port = 3001;
 
 app.use(express.json());
-
 //Le asigno los origienes de los cuales si quiero recibir información
 const whitelist = ['http://localhost:8080'];
 const option = {
