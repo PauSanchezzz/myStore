@@ -1,41 +1,70 @@
-const express = require('express');
-const { faker } = require('@faker-js/faker');
+import express from 'express';
+import ProductsService from './../services/product.js';
+import boom from '@hapi/boom';
+import {
+  createProductSchema,
+  updateProductSchema,
+  getProductSchema,
+} from './../schemas/products.js';
+import validatorHandler from '../middlewares/validator.js';
 
 const router = express.Router();
+const service = new ProductsService();
 
-router.get('/', (req, res) => {
-  const products = [];
-  const { size } = req.query;
-  const limit = size || 10;
-  for (let index = 0; index < limit; index++) {
-    products.push({
-      index,
-      name: faker.commerce.productName(),
-      price: parseInt(faker.commerce.price(), 10),
-      image: faker.image.imageUrl(),
-    });
-  }
+//Consultar Producto
+router.get('/', async (req, res) => {
+  const products = await service.find();
   res.json(products);
 });
-router.get('/filter', (req, res) => {
-  res.send('Yo soy un filter');
-});
 
-router.get('/:id', (req, res) => {
+//consultar por id
+router.get(
+  '/:id',
+  validatorHandler(getProductSchema, 'params'),
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const product = await service.findOne(id);
+      res.json(product);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+//Crear Producto
+router.post(
+  '/',
+  validatorHandler(createProductSchema, 'body'),
+  async (req, res) => {
+    const body = req.body;
+    const newProduct = await service.create(body);
+    res.status(201).json(newProduct);
+  }
+);
+
+//Actualizar Producto
+router.patch(
+  '/:id',
+  validatorHandler(getProductSchema, 'params'),
+  validatorHandler(updateProductSchema, 'body'),
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const body = req.body;
+      const product = await service.update(id, body);
+      res.json(product);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+//Eliminar producto
+router.delete('/:id', async (req, res) => {
   const { id } = req.params;
-  res.json({
-    id,
-    name: 'Product 2',
-    price: 2000,
-  });
+  const ans = await service.delete(id);
+  res.json(ans);
 });
 
-router.post('/', (req, res) => {
-  const body = req.body;
-  res.json({
-    message: 'created',
-    data: body,
-  });
-});
-
-module.exports = router;
+//module.exports = router;
+export default router;
