@@ -14,7 +14,8 @@ class ProductsService {
         index,
         name: faker.commerce.productName(),
         price: parseInt(faker.commerce.price(), 10),
-        image: faker.image.imageUrl(),
+        //image: faker.image.imageUrl(),
+        image: faker.image.urlLoremFlickr({ category: 'cats' }),
         isBlock: faker.datatype.boolean(),
       });
     }
